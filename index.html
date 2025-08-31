@@ -2,334 +2,187 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DSRT - Digital Smart Revise Technology</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>CreativeSpace Demo</title>
   <style>
-    /* Splash Screen */
-    .splash {
-      position: fixed;
-      z-index: 50;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(120deg, #312e81 0%, #1e293b 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      opacity: 1;
-      transition: opacity 0.7s;
+    body { margin:0; font-family:sans-serif; background:#f7f7f7; }
+    .center { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+    .btn { padding:12px 32px; margin:8px; font-size:1rem; border-radius:8px; border:1px solid #333; cursor:pointer; background:#fff; transition:box-shadow 0.2s; }
+    .btn:hover { box-shadow:0 2px 8px #bbb; }
+    .input { padding:8px; margin:4px; font-size:1rem; border-radius:4px; border:1px solid #ccc; }
+    .menu-list { display:flex; gap:18px; margin-top:24px; flex-wrap:wrap; }
+    .workspace-tools { margin:24px 0; display:flex; gap:24px; flex-wrap:wrap; }
+    .splash { 
+      position:fixed; top:0; left:0; right:0; bottom:0; background:#222; color:#fff; z-index:9999;
+      display:flex; justify-content:center; align-items:center; font-size:2rem; opacity:0; pointer-events:none;
+      transition:opacity 0.8s;
     }
-    .splash.hide {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .splash-logo {
-      font-size: 3rem;
-      font-weight: 900;
-      color: #a5b4fc;
-      letter-spacing: 0.15em;
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      animation: splashPop 1.5s cubic-bezier(.86,.09,.53,1.01) infinite alternate;
-    }
-    .splash-dot {
-      font-size: 2rem;
-      color: #3b82f6;
-      animation: splashDotPulse 1s infinite;
-    }
-    @keyframes splashPop { from { transform: scale(1);} to { transform: scale(1.05);} }
-    @keyframes splashDotPulse { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
-    .splash-subtitle {
-      color: #e0e7ff;
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      letter-spacing: 0.06em;
-      font-weight: 400;
-      animation: splashFadeIn 1.2s;
-    }
-    @keyframes splashFadeIn { from { opacity: 0;} to { opacity: 1;} }
-    #bgCanvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      z-index: 0;
-      pointer-events: none;
-      background: transparent;
-    }
-    .glass {
-      background: rgba(30, 41, 59, 0.4);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18);
-    }
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100vw;
-      background: rgba(30,41,59,0.76);
-      color: #a5b4fc;
-      font-size: 1rem;
-      text-align: center;
-      padding: 0.7rem 0;
-      letter-spacing: 0.1em;
-      z-index: 50;
-      border-top: 1px solid rgba(255,255,255,0.07);
-    }
-    /* Transition sections */
-    .section { display: none; opacity: 0; transition: opacity 0.6s; }
-    .section.active { display: block; opacity: 1; }
-    /* Home Smart Menu Grid */
-    .smart-menu {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    @media (min-width: 768px) {
-      .smart-menu { grid-template-columns: repeat(3,1fr);}
-    }
-    .smart-card {
-      cursor: pointer;
-      border-radius: 1.5rem;
-      padding: 2.5rem 1.5rem 2rem 1.5rem;
-      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18);
-      transition: box-shadow 0.3s, transform 0.3s;
-      position: relative;
-      background: rgba(31,41,55,0.74);
-      border: 1px solid rgba(255,255,255,0.09);
-      color: #fff;
-    }
-    .smart-card:hover {
-      box-shadow: 0 16px 32px 0 rgba(0,0,0,0.26);
-      transform: translateY(-5px) scale(1.04);
-    }
-    .smart-icon {
-      font-size: 3rem;
-      margin-bottom: 1.2rem;
-      display: block;
-      transition: transform 0.3s;
-    }
-    .smart-card:hover .smart-icon { transform: scale(1.14);}
-    /* Workspace style */
-    .workspace-panel {
-      max-width: 650px;
-      margin: 2rem auto;
-      background: rgba(30, 41, 59, 0.6);
-      border-radius: 1.5rem;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.15);
-      padding: 2.5rem 2rem;
-      color: #fff;
-      text-align: left;
-      animation: fadeInPanel 0.7s;
-    }
-    @keyframes fadeInPanel { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: none;} }
-    .workspace-back {
-      display: inline-block;
-      margin-bottom: 1.8rem;
-      color: #a5b4fc;
-      background: none;
-      border: none;
-      font-size: 1rem;
-      cursor: pointer;
-      text-decoration: underline;
-    }
+    .splash.show { opacity:1; pointer-events:auto; }
+    .logo { font-size:2.7rem; font-weight:bold; letter-spacing:2px; color:#0080ff; margin-bottom:10px; }
+    .desc { font-size:1.1rem; color:#555; margin-bottom:20px; max-width:320px; text-align:center; }
+    .header { font-size:2rem; font-weight:bold; margin-bottom:10px; color:#0080ff; }
+    .logout { margin-top:32px; background:#f33; color:#fff; }
+    .back { margin-top:24px; background:#222; color:#fff; }
+    .workspace { min-width:300px; padding:24px 14px; background:#fff; border-radius:16px; box-shadow:0 2px 16px #eee; }
   </style>
 </head>
 <body>
-  <!-- Background animasi -->
-  <canvas id="bgCanvas"></canvas>
-
-  <!-- Landing Page Section -->
-  <div id="landing" class="section active relative z-10 flex flex-col items-center justify-center min-h-screen text-center text-white">
-    <div class="px-6 py-6 rounded-2xl glass shadow-2xl border border-white/20 max-w-lg mx-auto transition-all duration-300 hover:scale-105 mt-20 md:mt-32">
-      <h1 class="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight flex items-center justify-center gap-2">
-        <span class="text-indigo-400">DSRT</span>
-        <span class="animate-pulse text-blue-400 text-2xl">●</span>
-      </h1>
-      <p class="text-xl md:text-2xl mb-4 font-medium text-blue-100">Digital Smart Revise Technology</p>
-      <p class="text-lg md:text-xl max-w-xl mx-auto text-gray-300">
-        Platform inovatif untuk mengelola data, media, dan keamanan digital Anda dalam satu ekosistem modern dan efisien.
-      </p>
-      <!-- Tombol Coba Sekarang -->
-      <button id="cobaBtn" class="inline-block mt-8 px-8 py-3 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full shadow-xl text-white text-lg font-bold hover:scale-105 transition-all duration-200">
-        Coba Sekarang
-      </button>
-    </div>
-  </div>
-
-  <!-- SplashScreen Section (muncul setelah tombol coba sekarang) -->
-  <div id="splash" class="splash" style="display:none;">
-    <div class="splash-logo">
-      DSRT <span class="splash-dot">●</span>
-    </div>
-    <div class="splash-subtitle">Digital Smart Revise Technology</div>
-  </div>
-
-  <!-- Home Smart Menu Section -->
-  <div id="home" class="section text-white min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
-    <div class="max-w-xl mx-auto px-4 py-10 text-center">
-      <h2 class="text-4xl font-bold mb-4">Selamat Datang di DSRT</h2>
-      <p class="text-gray-300 mb-12 text-lg">Pilih fitur smart yang ingin Anda gunakan!</p>
-      <div class="smart-menu">
-        <div class="smart-card" data-workspace="speed">
-          <span class="smart-icon text-blue-400">⚡</span>
-          <h3 class="text-xl font-semibold mb-2">Smart Speed</h3>
-          <p class="text-gray-300">Kelola dan optimasi kecepatan data Anda secara real-time.</p>
-        </div>
-        <div class="smart-card" data-workspace="security">
-          <span class="smart-icon text-green-400">🔒</span>
-          <h3 class="text-xl font-semibold mb-2">Smart Security</h3>
-          <p class="text-gray-300">Proteksi dan enkripsi data, privasi terjaga dengan AI.</p>
-        </div>
-        <div class="smart-card" data-workspace="integrasi">
-          <span class="smart-icon text-purple-400">🌐</span>
-          <h3 class="text-xl font-semibold mb-2">Smart Integrasi</h3>
-          <p class="text-gray-300">Integrasi global dengan API dan platform digital Anda.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Workspace Section (muncul setelah klik menu di home) -->
-  <div id="workspace" class="section min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
-    <div id="workspace-content"></div>
-  </div>
-
-  <footer>@ DSRT 2025 All Rights</footer>
-
-  <!-- JS Three.js + Logic -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <div id="root"></div>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script>
-    // Background 3D bola bergerak dengan Three.js
-    const canvas = document.getElementById('bgCanvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-    renderer.setSize(canvas.width, canvas.height);
-    renderer.setClearColor(0x000000, 0);
-    scene.add(new THREE.AmbientLight(0x8888ff, 0.7));
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(10, 10, 10);
-    scene.add(pointLight);
-    const geometry = new THREE.SphereGeometry(1.7, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x5e5fff,
-      metalness: 0.8,
-      roughness: 0.2,
-      transparent: true,
-      opacity: 0.85
-    });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-    camera.position.z = 7;
-    function animate() {
-      requestAnimationFrame(animate);
-      sphere.rotation.y += 0.008;
-      sphere.position.x = Math.sin(Date.now() * 0.001) * 2;
-      sphere.position.y = Math.cos(Date.now() * 0.0012) * 1;
-      renderer.render(scene, camera);
-    }
-    animate();
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    });
+    const { useState, useEffect } = React;
 
-    // Helper untuk show/hide section
-    function showSection(id) {
-      ['landing','splash','home','workspace'].forEach(sec => {
-        const el = document.getElementById(sec);
-        if (el) {
-          if (sec === id) {
-            el.classList.add('active');
-            el.style.display = '';
-          } else {
-            el.classList.remove('active');
-            el.style.display = 'none';
-          }
+    // SplashScreen dengan fade animasi
+    function SplashScreen({ show, onEnd }) {
+      useEffect(() => {
+        if (show) {
+          const timer = setTimeout(() => onEnd(), 1400); // 1.4s splash
+          return () => clearTimeout(timer);
         }
-      });
+      }, [show, onEnd]);
+      return (
+        <div className={"splash" + (show ? " show" : "")}>
+          <span>Memuat CreativeSpace...</span>
+        </div>
+      );
     }
 
-    // Alur: Landing -> Splash -> Home -> Workspace
-    document.getElementById('cobaBtn').addEventListener('click', function(){
-      showSection('splash');
-      document.getElementById('splash').style.display = 'flex';
-      setTimeout(()=>{
-        document.getElementById('splash').classList.add('hide');
-        setTimeout(() => {
-          showSection('home');
-        }, 700);
-      }, 2000);
-    });
+    function App() {
+      // stage: landing, login, splash, home, workspace
+      const [stage, setStage] = useState("landing");
+      const [workspace, setWorkspace] = useState(""); // 'video' | 'photo' | 'logo' | dll
+      const [user, setUser] = useState(null);
+      const [loginForm, setLoginForm] = useState({ username: "", password: "" });
+      const [showSplash, setShowSplash] = useState(false);
 
-    // Home Smart Menu logic
-    document.querySelectorAll('.smart-card').forEach(card => {
-      card.addEventListener('click', function(){
-        // Isi workspace sesuai fitur
-        const ws = document.getElementById('workspace-content');
-        let type = card.getAttribute('data-workspace');
-        let content = '';
-        if(type === 'speed'){
-          content = `
-            <div class="workspace-panel">
-              <button class="workspace-back" onclick="window.goHome()">← Kembali ke Home</button>
-              <h2 class="text-3xl font-bold text-blue-400 mb-4">Smart Speed</h2>
-              <p class="mb-6 text-lg">Kelola dan optimasi kecepatan data Anda secara real-time dengan teknologi DSRT.</p>
-              <ul class="list-disc ml-6 text-base mb-4">
-                <li>Pemantauan kecepatan data live</li>
-                <li>Optimasi otomatis & manual</li>
-                <li>Analisa performa sistem</li>
-              </ul>
-              <button class="px-5 py-2 bg-blue-600 rounded-full text-white font-bold hover:bg-blue-700 transition">Mulai Optimasi</button>
-            </div>
-          `;
-        } else if(type === 'security'){
-          content = `
-            <div class="workspace-panel">
-              <button class="workspace-back" onclick="window.goHome()">← Kembali ke Home</button>
-              <h2 class="text-3xl font-bold text-green-400 mb-4">Smart Security</h2>
-              <p class="mb-6 text-lg">Proteksi data dan privasi dengan enkripsi AI DSRT.</p>
-              <ul class="list-disc ml-6 text-base mb-4">
-                <li>Enkripsi end-to-end</li>
-                <li>Deteksi ancaman otomatis</li>
-                <li>Audit keamanan berkala</li>
-              </ul>
-              <button class="px-5 py-2 bg-green-600 rounded-full text-white font-bold hover:bg-green-700 transition">Mulai Proteksi</button>
-            </div>
-          `;
-        } else if(type === 'integrasi'){
-          content = `
-            <div class="workspace-panel">
-              <button class="workspace-back" onclick="window.goHome()">← Kembali ke Home</button>
-              <h2 class="text-3xl font-bold text-purple-400 mb-4">Smart Integrasi</h2>
-              <p class="mb-6 text-lg">Integrasi global dengan API dan platform digital Anda tanpa batas.</p>
-              <ul class="list-disc ml-6 text-base mb-4">
-                <li>Integrasi API 1-click</li>
-                <li>Koneksi multi-platform</li>
-                <li>Monitoring dan log aktivitas</li>
-              </ul>
-              <button class="px-5 py-2 bg-purple-600 rounded-full text-white font-bold hover:bg-purple-700 transition">Mulai Integrasi</button>
-            </div>
-          `;
+      // Simulasi login
+      const handleLogin = (e) => {
+        e.preventDefault();
+        setUser(loginForm.username);
+        setShowSplash(true);
+        setStage("splash");
+      };
+
+      // Splash selesai
+      useEffect(() => {
+        if (showSplash) {
+          const timer = setTimeout(() => {
+            setShowSplash(false);
+            setStage("home");
+          }, 1400);
+          return () => clearTimeout(timer);
         }
-        ws.innerHTML = content;
-        showSection('workspace');
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-    });
+      }, [showSplash]);
 
-    // Untuk tombol "Kembali ke Home" di workspace
-    window.goHome = function(){
-      showSection('home');
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Landing Page
+      if (stage === "landing") {
+        return (
+          <div className="center">
+            <div className="logo">CreativeSpace</div>
+            <div className="desc">
+              Edit video, foto, logo, dan lainnya secara modern.<br />
+              Mirip Picsart, Figma, dan tools kreatif lainnya.
+            </div>
+            <button className="btn" onClick={() => setStage("login")}>Login</button>
+          </div>
+        );
+      }
+      // Login Page
+      if (stage === "login") {
+        return (
+          <div className="center">
+            <form onSubmit={handleLogin}>
+              <div className="header">Login</div>
+              <input className="input" type="text" placeholder="Username" required
+                value={loginForm.username}
+                onChange={e => setLoginForm(f => ({ ...f, username: e.target.value }))} />
+              <input className="input" type="password" placeholder="Password" required
+                value={loginForm.password}
+                onChange={e => setLoginForm(f => ({ ...f, password: e.target.value }))} />
+              <button className="btn" type="submit">Masuk</button>
+            </form>
+          </div>
+        );
+      }
+      // SplashScreen
+      if (stage === "splash") {
+        return <SplashScreen show={showSplash} onEnd={() => {}} />;
+      }
+      // Home Page
+      if (stage === "home") {
+        return (
+          <div className="center">
+            <div className="header">Selamat Datang, {user}!</div>
+            <div>Pilih fitur editing:</div>
+            <div className="menu-list">
+              <button className="btn" onClick={() => { setWorkspace("video"); setStage("workspace"); }}>Edit Video</button>
+              <button className="btn" onClick={() => { setWorkspace("photo"); setStage("workspace"); }}>Edit Foto</button>
+              <button className="btn" onClick={() => { setWorkspace("logo"); setStage("workspace"); }}>Edit Logo</button>
+              <button className="btn" onClick={() => { setWorkspace("design"); setStage("workspace"); }}>Edit Desain</button>
+              <button className="btn" onClick={() => { setWorkspace("banner"); setStage("workspace"); }}>Edit Banner</button>
+            </div>
+            <button className="btn logout" onClick={() => { setUser(null); setStage("landing"); }}>Logout</button>
+          </div>
+        );
+      }
+      // Workspace Page
+      if (stage === "workspace") {
+        return (
+          <div className="center workspace">
+            <div className="header">Workspace: Edit {workspace.charAt(0).toUpperCase() + workspace.slice(1)}</div>
+            <div className="workspace-tools">
+              {workspace === "video" && (
+                <>
+                  <button className="btn">Potong Video</button>
+                  <button className="btn">Tambah Musik</button>
+                  <button className="btn">Filter Efek</button>
+                  <button className="btn">Ekspor MP4</button>
+                </>
+              )}
+              {workspace === "photo" && (
+                <>
+                  <button className="btn">Crop Foto</button>
+                  <button className="btn">Filter</button>
+                  <button className="btn">Tambahkan Teks</button>
+                  <button className="btn">Ekspor JPG</button>
+                </>
+              )}
+              {workspace === "logo" && (
+                <>
+                  <button className="btn">Buat Logo Baru</button>
+                  <button className="btn">Edit Warna</button>
+                  <button className="btn">Tambahkan Icon</button>
+                  <button className="btn">Ekspor PNG</button>
+                </>
+              )}
+              {workspace === "design" && (
+                <>
+                  <button className="btn">Canvas Design</button>
+                  <button className="btn">Layer</button>
+                  <button className="btn">Vector</button>
+                  <button className="btn">Export SVG</button>
+                </>
+              )}
+              {workspace === "banner" && (
+                <>
+                  <button className="btn">Ukuran Banner</button>
+                  <button className="btn">Background</button>
+                  <button className="btn">Teks Banner</button>
+                  <button className="btn">Export PNG</button>
+                </>
+              )}
+            </div>
+            <button className="btn back" onClick={() => setStage("home")}>Kembali ke Home</button>
+          </div>
+        );
+      }
+      return null;
     }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
   </script>
 </body>
 </html>
