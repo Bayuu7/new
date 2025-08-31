@@ -28,36 +28,33 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- React & ReactDOM CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- React & ReactDOM CDN (VERSI 17) -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
   <script>
     const { useState, useEffect } = React;
 
-    // SplashScreen dengan fade animasi
     function SplashScreen({ show, onEnd }) {
       useEffect(() => {
         if (show) {
-          const timer = setTimeout(() => onEnd(), 1400); // 1.4s splash
+          const timer = setTimeout(() => onEnd(), 1400);
           return () => clearTimeout(timer);
         }
       }, [show, onEnd]);
       return (
-        <div className={"splash" + (show ? " show" : "")}>
-          <span>Memuat CreativeSpace...</span>
-        </div>
+        React.createElement("div", { className: "splash" + (show ? " show" : "") },
+          React.createElement("span", null, "Memuat CreativeSpace...")
+        )
       );
     }
 
     function App() {
-      // stage: landing, login, splash, home, workspace
       const [stage, setStage] = useState("landing");
-      const [workspace, setWorkspace] = useState(""); // 'video' | 'photo' | 'logo' | dll
+      const [workspace, setWorkspace] = useState("");
       const [user, setUser] = useState(null);
       const [loginForm, setLoginForm] = useState({ username: "", password: "" });
       const [showSplash, setShowSplash] = useState(false);
 
-      // Simulasi login
       const handleLogin = (e) => {
         e.preventDefault();
         setUser(loginForm.username);
@@ -65,7 +62,6 @@
         setStage("splash");
       };
 
-      // Splash selesai
       useEffect(() => {
         if (showSplash) {
           const timer = setTimeout(() => {
@@ -76,113 +72,103 @@
         }
       }, [showSplash]);
 
-      // Landing Page
       if (stage === "landing") {
-        return (
-          <div className="center">
-            <div className="logo">CreativeSpace</div>
-            <div className="desc">
-              Edit video, foto, logo, dan lainnya secara modern.<br />
-              Mirip Picsart, Figma, dan tools kreatif lainnya.
-            </div>
-            <button className="btn" onClick={() => setStage("login")}>Login</button>
-          </div>
+        return React.createElement("div", { className: "center" },
+          React.createElement("div", { className: "logo" }, "CreativeSpace"),
+          React.createElement("div", { className: "desc" },
+            "Edit video, foto, logo, dan lainnya secara modern.",
+            React.createElement("br", null),
+            "Mirip Picsart, Figma, dan tools kreatif lainnya."
+          ),
+          React.createElement("button", { className: "btn", onClick: () => setStage("login") }, "Login")
         );
       }
-      // Login Page
       if (stage === "login") {
-        return (
-          <div className="center">
-            <form onSubmit={handleLogin}>
-              <div className="header">Login</div>
-              <input className="input" type="text" placeholder="Username" required
-                value={loginForm.username}
-                onChange={e => setLoginForm(f => ({ ...f, username: e.target.value }))} />
-              <input className="input" type="password" placeholder="Password" required
-                value={loginForm.password}
-                onChange={e => setLoginForm(f => ({ ...f, password: e.target.value }))} />
-              <button className="btn" type="submit">Masuk</button>
-            </form>
-          </div>
+        return React.createElement("div", { className: "center" },
+          React.createElement("form", { onSubmit: handleLogin },
+            React.createElement("div", { className: "header" }, "Login"),
+            React.createElement("input", {
+              className: "input",
+              type: "text",
+              placeholder: "Username",
+              required: true,
+              value: loginForm.username,
+              onChange: e => setLoginForm(f => ({ ...f, username: e.target.value }))
+            }),
+            React.createElement("input", {
+              className: "input",
+              type: "password",
+              placeholder: "Password",
+              required: true,
+              value: loginForm.password,
+              onChange: e => setLoginForm(f => ({ ...f, password: e.target.value }))
+            }),
+            React.createElement("button", { className: "btn", type: "submit" }, "Masuk")
+          )
         );
       }
-      // SplashScreen
       if (stage === "splash") {
-        return <SplashScreen show={showSplash} onEnd={() => {}} />;
+        return React.createElement(SplashScreen, { show: showSplash, onEnd: () => {} });
       }
-      // Home Page
       if (stage === "home") {
-        return (
-          <div className="center">
-            <div className="header">Selamat Datang, {user}!</div>
-            <div>Pilih fitur editing:</div>
-            <div className="menu-list">
-              <button className="btn" onClick={() => { setWorkspace("video"); setStage("workspace"); }}>Edit Video</button>
-              <button className="btn" onClick={() => { setWorkspace("photo"); setStage("workspace"); }}>Edit Foto</button>
-              <button className="btn" onClick={() => { setWorkspace("logo"); setStage("workspace"); }}>Edit Logo</button>
-              <button className="btn" onClick={() => { setWorkspace("design"); setStage("workspace"); }}>Edit Desain</button>
-              <button className="btn" onClick={() => { setWorkspace("banner"); setStage("workspace"); }}>Edit Banner</button>
-            </div>
-            <button className="btn logout" onClick={() => { setUser(null); setStage("landing"); }}>Logout</button>
-          </div>
+        return React.createElement("div", { className: "center" },
+          React.createElement("div", { className: "header" }, `Selamat Datang, ${user}!`),
+          React.createElement("div", null, "Pilih fitur editing:"),
+          React.createElement("div", { className: "menu-list" },
+            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("video"); setStage("workspace"); } }, "Edit Video"),
+            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("photo"); setStage("workspace"); } }, "Edit Foto"),
+            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("logo"); setStage("workspace"); } }, "Edit Logo"),
+            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("design"); setStage("workspace"); } }, "Edit Desain"),
+            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("banner"); setStage("workspace"); } }, "Edit Banner")
+          ),
+          React.createElement("button", { className: "btn logout", onClick: () => { setUser(null); setStage("landing"); } }, "Logout")
         );
       }
-      // Workspace Page
       if (stage === "workspace") {
-        return (
-          <div className="center workspace">
-            <div className="header">Workspace: Edit {workspace.charAt(0).toUpperCase() + workspace.slice(1)}</div>
-            <div className="workspace-tools">
-              {workspace === "video" && (
-                <>
-                  <button className="btn">Potong Video</button>
-                  <button className="btn">Tambah Musik</button>
-                  <button className="btn">Filter Efek</button>
-                  <button className="btn">Ekspor MP4</button>
-                </>
-              )}
-              {workspace === "photo" && (
-                <>
-                  <button className="btn">Crop Foto</button>
-                  <button className="btn">Filter</button>
-                  <button className="btn">Tambahkan Teks</button>
-                  <button className="btn">Ekspor JPG</button>
-                </>
-              )}
-              {workspace === "logo" && (
-                <>
-                  <button className="btn">Buat Logo Baru</button>
-                  <button className="btn">Edit Warna</button>
-                  <button className="btn">Tambahkan Icon</button>
-                  <button className="btn">Ekspor PNG</button>
-                </>
-              )}
-              {workspace === "design" && (
-                <>
-                  <button className="btn">Canvas Design</button>
-                  <button className="btn">Layer</button>
-                  <button className="btn">Vector</button>
-                  <button className="btn">Export SVG</button>
-                </>
-              )}
-              {workspace === "banner" && (
-                <>
-                  <button className="btn">Ukuran Banner</button>
-                  <button className="btn">Background</button>
-                  <button className="btn">Teks Banner</button>
-                  <button className="btn">Export PNG</button>
-                </>
-              )}
-            </div>
-            <button className="btn back" onClick={() => setStage("home")}>Kembali ke Home</button>
-          </div>
+        return React.createElement("div", { className: "center workspace" },
+          React.createElement("div", { className: "header" }, `Workspace: Edit ${workspace.charAt(0).toUpperCase() + workspace.slice(1)}`),
+          React.createElement("div", { className: "workspace-tools" },
+            workspace === "video" && [
+              React.createElement("button", { className: "btn", key: "potong" }, "Potong Video"),
+              React.createElement("button", { className: "btn", key: "musik" }, "Tambah Musik"),
+              React.createElement("button", { className: "btn", key: "efek" }, "Filter Efek"),
+              React.createElement("button", { className: "btn", key: "export" }, "Ekspor MP4")
+            ],
+            workspace === "photo" && [
+              React.createElement("button", { className: "btn", key: "crop" }, "Crop Foto"),
+              React.createElement("button", { className: "btn", key: "filter" }, "Filter"),
+              React.createElement("button", { className: "btn", key: "teks" }, "Tambahkan Teks"),
+              React.createElement("button", { className: "btn", key: "jpg" }, "Ekspor JPG")
+            ],
+            workspace === "logo" && [
+              React.createElement("button", { className: "btn", key: "baru" }, "Buat Logo Baru"),
+              React.createElement("button", { className: "btn", key: "warna" }, "Edit Warna"),
+              React.createElement("button", { className: "btn", key: "icon" }, "Tambahkan Icon"),
+              React.createElement("button", { className: "btn", key: "png" }, "Ekspor PNG")
+            ],
+            workspace === "design" && [
+              React.createElement("button", { className: "btn", key: "canvas" }, "Canvas Design"),
+              React.createElement("button", { className: "btn", key: "layer" }, "Layer"),
+              React.createElement("button", { className: "btn", key: "vector" }, "Vector"),
+              React.createElement("button", { className: "btn", key: "svg" }, "Export SVG")
+            ],
+            workspace === "banner" && [
+              React.createElement("button", { className: "btn", key: "ukuran" }, "Ukuran Banner"),
+              React.createElement("button", { className: "btn", key: "bg" }, "Background"),
+              React.createElement("button", { className: "btn", key: "teks" }, "Teks Banner"),
+              React.createElement("button", { className: "btn", key: "export" }, "Export PNG")
+            ]
+          ),
+          React.createElement("button", { className: "btn back", onClick: () => setStage("home") }, "Kembali ke Home")
         );
       }
       return null;
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
+    ReactDOM.render(
+      React.createElement(App),
+      document.getElementById("root")
+    );
   </script>
 </body>
 </html>
