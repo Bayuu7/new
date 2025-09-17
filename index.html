@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSRT - Abstract 3D Background</title>
+  <title>DSRT - Cinematic Neon Background</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body, html {
@@ -25,9 +25,7 @@
 
   <!-- Header -->
   <header class="flex justify-between items-center p-6 absolute top-0 left-0 w-full z-10">
-    <!-- Logo -->
     <div class="text-2xl font-bold tracking-wider">DSRT</div>
-    <!-- Login Button -->
     <button class="px-6 py-2 bg-gradient-to-r from-purple-600 via-teal-400 to-orange-500 rounded-xl shadow-lg hover:opacity-90 transition">
       Login
     </button>
@@ -43,48 +41,110 @@
   <!-- Three.js -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
   <script>
-    let scene = new THREE.Scene();
-    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Geometry (wave plane)
-    let geometry = new THREE.PlaneGeometry(50, 50, 100, 100);
-    let material = new THREE.MeshBasicMaterial({ 
-      color: 0x00ffff, 
-      wireframe: true 
-    });
-    let plane = new THREE.Mesh(geometry, material);
-    scene.add(plane);
+    // Low-poly holographic mesh
+    const geometry = new THREE.PlaneGeometry(100,100,50,50);
+    geometry.rotateX(-Math.PI/2);
+    const positionAttribute = geometry.attributes.position;
+    for(let i=0;i<positionAttribute.count;i++){
+      positionAttribute.setZ(i, positionAttribute.getZ(i) + (Math.random()-0.5)*2);
+    }
 
-    plane.rotation.x = -Math.PI / 2.5;
-    camera.position.z = 20;
-    camera.position.y = 10;
+    const colors = [];
+    for(let i=0;i<positionAttribute.count;i++){
+      const color = new THREE.Color();
+      color.setHSL(Math.random(),1,0.5);
+      colors.push(color.r,color.g,color.b);
+    }
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors,3));
 
-    // Animate waves + gradient color shift
-    function animate() {
+    const material = new THREE.MeshPhongMaterial({vertexColors:true, flatShading:true, side:THREE.DoubleSide});
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x404040,2));
+    const pointLight1 = new THREE.PointLight(0xff00ff,2,200); pointLight1.position.set(20,30,20); scene.add(pointLight1);
+    const pointLight2 = new THREE.PointLight(0xff9900,2,200); pointLight2.position.set(-30,40,-10); scene.add(pointLight2);
+
+    // Glow texture
+    function createGlowTexture(){
+      const size=64; const canvas=document.createElement("canvas"); canvas.width=size; canvas.height=size;
+      const ctx=canvas.getContext("2d");
+      const gradient=ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+      gradient.addColorStop(0,"rgba(255,255,255,1)");
+      gradient.addColorStop(0.4,"rgba(255,255,255,0.6)");
+      gradient.addColorStop(1,"rgba(255,255,255,0)");
+      ctx.fillStyle=gradient; ctx.fillRect(0,0,size,size);
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // Particle system
+    function createParticleSystem(count,size){
+      const geo=new THREE.BufferGeometry();
+      const pos=new Float32Array(count*3);
+      for(let i=0;i<count*3;i++){ pos[i]=(Math.random()-0.5)*300; }
+      geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+      const mat=new THREE.PointsMaterial({size:size,map:createGlowTexture(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true});
+      return new THREE.Points(geo, mat);
+    }
+
+    const smallParticles = createParticleSystem(1000,1);
+    const bigParticles = createParticleSystem(200,3);
+    scene.add(smallParticles); scene.add(bigParticles);
+
+    // Camera
+    let angle=0;
+
+    // Neon cycle
+    const neonColors=[0x00ffff,0xff00ff,0xff9900];
+    let colorIndex=0; let nextColorIndex=1; let colorMix=0;
+
+    function animate(){
       requestAnimationFrame(animate);
-      let time = Date.now() * 0.001;
+      const time=Date.now()*0.001;
 
-      geometry.vertices?.forEach((vertex, i) => {
-        vertex.z = Math.sin(i / 5 + time) * 0.5;
-      });
-      geometry.verticesNeedUpdate = true;
+      // Low-poly waves + vertex color
+      for(let i=0;i<positionAttribute.count;i++){
+        positionAttribute.setZ(i, Math.sin(i/5+time)*1.5);
+        const c1=new THREE.Color(neonColors[colorIndex]);
+        const c2=new THREE.Color(neonColors[nextColorIndex]);
+        const currentColor=c1.clone().lerp(c2,colorMix);
+        geometry.attributes.color.setXYZ(i,currentColor.r,currentColor.g,currentColor.b);
+      }
+      positionAttribute.needsUpdate=true;
+      geometry.attributes.color.needsUpdate=true;
 
-      // Dynamic rainbow color shift
-      let r = Math.sin(time * 0.6) * 127 + 128;
-      let g = Math.sin(time * 0.4 + 2) * 127 + 128;
-      let b = Math.sin(time * 0.8 + 4) * 127 + 128;
-      material.color.setRGB(r / 255, g / 255, b / 255);
+      // Particles rotate
+      smallParticles.rotation.y+=0.0003; bigParticles.rotation.y+=0.0006;
 
-      renderer.render(scene, camera);
+      // Color cycling
+      colorMix+=0.002; if(colorMix>=1){colorMix=0;colorIndex=nextColorIndex; nextColorIndex=(nextColorIndex+1)%neonColors.length;}
+      const c1=new THREE.Color(neonColors[colorIndex]);
+      const c2=new THREE.Color(neonColors[nextColorIndex]);
+      const currentColor=c1.clone().lerp(c2,colorMix);
+      smallParticles.material.color.copy(currentColor);
+      bigParticles.material.color.copy(currentColor);
+
+      // Auto orbit + breathing zoom
+      angle+=0.0008;
+      const zoom = 40 + Math.sin(time*0.5)*5; // slow zoom in/out
+      camera.position.x = Math.sin(angle)*zoom;
+      camera.position.z = Math.cos(angle)*zoom;
+      camera.position.y = 20 + Math.sin(time*0.3)*2; // vertical subtle breathing
+      camera.lookAt(0,0,0);
+
+      renderer.render(scene,camera);
     }
     animate();
 
-    // Resize handling
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    window.addEventListener('resize',()=>{
+      camera.aspect=window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
