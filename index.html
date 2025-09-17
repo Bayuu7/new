@@ -3,152 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSRT - Cinematic Neon Background</title>
+  <title>DSRT - Interactive Neon 3D Background</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
+      margin:0; padding:0; height:100%; overflow:hidden;
       background: radial-gradient(circle at center, #0f0c29, #302b63, #24243e);
     }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
+    canvas{ position:absolute; top:0; left:0; z-index:-1; }
   </style>
 </head>
 <body class="text-white">
 
-  <!-- Header -->
-  <header class="flex justify-between items-center p-6 absolute top-0 left-0 w-full z-10">
-    <div class="text-2xl font-bold tracking-wider">DSRT</div>
-    <button class="px-6 py-2 bg-gradient-to-r from-purple-600 via-teal-400 to-orange-500 rounded-xl shadow-lg hover:opacity-90 transition">
-      Login
-    </button>
-  </header>
+<header class="flex justify-between items-center p-6 absolute top-0 left-0 w-full z-10">
+  <div class="text-2xl font-bold tracking-wider">DSRT</div>
+  <button class="px-6 py-2 bg-gradient-to-r from-purple-600 via-teal-400 to-orange-500 rounded-xl shadow-lg hover:opacity-90 transition">Login</button>
+</header>
 
-  <!-- Konten Tengah -->
-  <main class="flex items-center justify-center h-screen text-center relative z-10">
-    <h1 class="text-5xl font-extrabold drop-shadow-lg bg-gradient-to-r from-teal-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">
-      Welcome to DSRT
-    </h1>
-  </main>
+<main class="flex items-center justify-center h-screen text-center relative z-10">
+  <h1 class="text-5xl font-extrabold drop-shadow-lg bg-gradient-to-r from-teal-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">Welcome to DSRT</h1>
+</main>
 
-  <!-- Three.js -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
-  <script>
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({antialias:true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-    // Low-poly holographic mesh
-    const geometry = new THREE.PlaneGeometry(100,100,50,50);
-    geometry.rotateX(-Math.PI/2);
-    const positionAttribute = geometry.attributes.position;
-    for(let i=0;i<positionAttribute.count;i++){
-      positionAttribute.setZ(i, positionAttribute.getZ(i) + (Math.random()-0.5)*2);
-    }
+// --- Low-poly ground mesh ---
+const geometry = new THREE.PlaneGeometry(100,100,50,50);
+geometry.rotateX(-Math.PI/2);
+const posAttr = geometry.attributes.position;
+for(let i=0;i<posAttr.count;i++){ posAttr.setZ(i,posAttr.getZ(i)+(Math.random()-0.5)*2); }
+const colors = [];
+for(let i=0;i<posAttr.count;i++){ 
+  const color = new THREE.Color(); 
+  color.setHSL(Math.random(),1,0.5); 
+  colors.push(color.r,color.g,color.b); 
+}
+geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors,3));
+const material = new THREE.MeshPhongMaterial({vertexColors:true, flatShading:true, side:THREE.DoubleSide});
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
 
-    const colors = [];
-    for(let i=0;i<positionAttribute.count;i++){
-      const color = new THREE.Color();
-      color.setHSL(Math.random(),1,0.5);
-      colors.push(color.r,color.g,color.b);
-    }
-    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors,3));
+// --- Lights ---
+scene.add(new THREE.AmbientLight(0x404040,2));
+const pointLight1 = new THREE.PointLight(0xff00ff,2,200); pointLight1.position.set(20,30,20); scene.add(pointLight1);
+const pointLight2 = new THREE.PointLight(0xff9900,2,200); pointLight2.position.set(-30,40,-10); scene.add(pointLight2);
 
-    const material = new THREE.MeshPhongMaterial({vertexColors:true, flatShading:true, side:THREE.DoubleSide});
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+// --- Glow texture ---
+function createGlowTexture(){
+  const size=64; const canvas=document.createElement("canvas"); canvas.width=size; canvas.height=size;
+  const ctx=canvas.getContext("2d");
+  const grad=ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  grad.addColorStop(0,"rgba(255,255,255,1)"); grad.addColorStop(0.4,"rgba(255,255,255,0.6)"); grad.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.fillStyle=grad; ctx.fillRect(0,0,size,size);
+  return new THREE.CanvasTexture(canvas);
+}
 
-    // Lights
-    scene.add(new THREE.AmbientLight(0x404040,2));
-    const pointLight1 = new THREE.PointLight(0xff00ff,2,200); pointLight1.position.set(20,30,20); scene.add(pointLight1);
-    const pointLight2 = new THREE.PointLight(0xff9900,2,200); pointLight2.position.set(-30,40,-10); scene.add(pointLight2);
+// --- Particle system ---
+function createParticles(count,size){
+  const geo=new THREE.BufferGeometry(); const pos=new Float32Array(count*3);
+  for(let i=0;i<count*3;i++){ pos[i]=(Math.random()-0.5)*300; }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({size:size,map:createGlowTexture(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true});
+  return new THREE.Points(geo,mat);
+}
+const smallParticles = createParticles(1000,1);
+const bigParticles = createParticles(200,3);
+scene.add(smallParticles); scene.add(bigParticles);
 
-    // Glow texture
-    function createGlowTexture(){
-      const size=64; const canvas=document.createElement("canvas"); canvas.width=size; canvas.height=size;
-      const ctx=canvas.getContext("2d");
-      const gradient=ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
-      gradient.addColorStop(0,"rgba(255,255,255,1)");
-      gradient.addColorStop(0.4,"rgba(255,255,255,0.6)");
-      gradient.addColorStop(1,"rgba(255,255,255,0)");
-      ctx.fillStyle=gradient; ctx.fillRect(0,0,size,size);
-      return new THREE.CanvasTexture(canvas);
-    }
+// --- Floating geometries (multi-color) ---
+const floatingGeometries = [];
+const geoShapes = [new THREE.BoxGeometry(2,2,2), new THREE.TetrahedronGeometry(2), new THREE.OctahedronGeometry(2)];
+for(let i=0;i<20;i++){
+  const geo = geoShapes[Math.floor(Math.random()*geoShapes.length)];
+  const colorMat = new THREE.MeshPhongMaterial({color: new THREE.Color(Math.random(),Math.random(),Math.random()), flatShading:true});
+  const obj = new THREE.Mesh(geo,colorMat);
+  obj.position.set((Math.random()-0.5)*80, Math.random()*20+5, (Math.random()-0.5)*80);
+  obj.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+  scene.add(obj);
+  floatingGeometries.push(obj);
+}
 
-    // Particle system
-    function createParticleSystem(count,size){
-      const geo=new THREE.BufferGeometry();
-      const pos=new Float32Array(count*3);
-      for(let i=0;i<count*3;i++){ pos[i]=(Math.random()-0.5)*300; }
-      geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
-      const mat=new THREE.PointsMaterial({size:size,map:createGlowTexture(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true});
-      return new THREE.Points(geo, mat);
-    }
+// --- Camera interactive ---
+let angle=0, targetX=0,targetY=0,zoomOffset=0;
+window.addEventListener('mousemove',(e)=>{ targetX=(e.clientX/window.innerWidth-0.5)*10; targetY=(e.clientY/window.innerHeight-0.5)*5; });
+window.addEventListener('wheel',(e)=>{ zoomOffset += e.deltaY*0.05; zoomOffset = Math.min(Math.max(zoomOffset,-15),15); });
 
-    const smallParticles = createParticleSystem(1000,1);
-    const bigParticles = createParticleSystem(200,3);
-    scene.add(smallParticles); scene.add(bigParticles);
+// --- Neon colors cycle ---
+const neonColors=[0x00ffff,0xff00ff,0xff9900];
+let colorIndex=0,nextColorIndex=1,colorMix=0;
 
-    // Camera
-    let angle=0;
+// --- Animate ---
+function animate(){
+  requestAnimationFrame(animate);
+  const time=Date.now()*0.001;
 
-    // Neon cycle
-    const neonColors=[0x00ffff,0xff00ff,0xff9900];
-    let colorIndex=0; let nextColorIndex=1; let colorMix=0;
+  // Low-poly waves + vertex colors
+  for(let i=0;i<posAttr.count;i++){
+    posAttr.setZ(i,Math.sin(i/5+time)*1.5);
+    const c1=new THREE.Color(neonColors[colorIndex]);
+    const c2=new THREE.Color(neonColors[nextColorIndex]);
+    const currentColor=c1.clone().lerp(c2,colorMix);
+    geometry.attributes.color.setXYZ(i,currentColor.r,currentColor.g,currentColor.b);
+  }
+  posAttr.needsUpdate=true; geometry.attributes.color.needsUpdate=true;
 
-    function animate(){
-      requestAnimationFrame(animate);
-      const time=Date.now()*0.001;
+  // Particles rotation
+  smallParticles.rotation.y+=0.0003; bigParticles.rotation.y+=0.0006;
 
-      // Low-poly waves + vertex color
-      for(let i=0;i<positionAttribute.count;i++){
-        positionAttribute.setZ(i, Math.sin(i/5+time)*1.5);
-        const c1=new THREE.Color(neonColors[colorIndex]);
-        const c2=new THREE.Color(neonColors[nextColorIndex]);
-        const currentColor=c1.clone().lerp(c2,colorMix);
-        geometry.attributes.color.setXYZ(i,currentColor.r,currentColor.g,currentColor.b);
-      }
-      positionAttribute.needsUpdate=true;
-      geometry.attributes.color.needsUpdate=true;
+  // Floating geometries rotate
+  floatingGeometries.forEach(obj=>{ obj.rotation.x+=0.001; obj.rotation.y+=0.002; });
 
-      // Particles rotate
-      smallParticles.rotation.y+=0.0003; bigParticles.rotation.y+=0.0006;
+  // Color cycling
+  colorMix+=0.002; if(colorMix>=1){ colorMix=0;colorIndex=nextColorIndex; nextColorIndex=(nextColorIndex+1)%neonColors.length; }
+  const c1=new THREE.Color(neonColors[colorIndex]);
+  const c2=new THREE.Color(neonColors[nextColorIndex]);
+  const currentColor=c1.clone().lerp(c2,colorMix);
+  smallParticles.material.color.copy(currentColor);
+  bigParticles.material.color.copy(currentColor);
 
-      // Color cycling
-      colorMix+=0.002; if(colorMix>=1){colorMix=0;colorIndex=nextColorIndex; nextColorIndex=(nextColorIndex+1)%neonColors.length;}
-      const c1=new THREE.Color(neonColors[colorIndex]);
-      const c2=new THREE.Color(neonColors[nextColorIndex]);
-      const currentColor=c1.clone().lerp(c2,colorMix);
-      smallParticles.material.color.copy(currentColor);
-      bigParticles.material.color.copy(currentColor);
+  // Camera orbit + breathing + interactive
+  angle+=0.0008;
+  const baseZoom=40 + Math.sin(time*0.5)*5 + zoomOffset;
+  camera.position.x=Math.sin(angle)*baseZoom+targetX;
+  camera.position.z=Math.cos(angle)*baseZoom;
+  camera.position.y=20 + Math.sin(time*0.3)*2 + targetY;
+  camera.lookAt(0,0,0);
 
-      // Auto orbit + breathing zoom
-      angle+=0.0008;
-      const zoom = 40 + Math.sin(time*0.5)*5; // slow zoom in/out
-      camera.position.x = Math.sin(angle)*zoom;
-      camera.position.z = Math.cos(angle)*zoom;
-      camera.position.y = 20 + Math.sin(time*0.3)*2; // vertical subtle breathing
-      camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+animate();
 
-      renderer.render(scene,camera);
-    }
-    animate();
-
-    window.addEventListener('resize',()=>{
-      camera.aspect=window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
+// --- Resize ---
+window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
+</script>
 
 </body>
 </html>
