@@ -1,174 +1,94 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>CreativeSpace Demo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSRT - Abstract 3D Background</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { margin:0; font-family:sans-serif; background:#f7f7f7; }
-    .center { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-    .btn { padding:12px 32px; margin:8px; font-size:1rem; border-radius:8px; border:1px solid #333; cursor:pointer; background:#fff; transition:box-shadow 0.2s; }
-    .btn:hover { box-shadow:0 2px 8px #bbb; }
-    .input { padding:8px; margin:4px; font-size:1rem; border-radius:4px; border:1px solid #ccc; }
-    .menu-list { display:flex; gap:18px; margin-top:24px; flex-wrap:wrap; }
-    .workspace-tools { margin:24px 0; display:flex; gap:24px; flex-wrap:wrap; }
-    .splash { 
-      position:fixed; top:0; left:0; right:0; bottom:0; background:#222; color:#fff; z-index:9999;
-      display:flex; justify-content:center; align-items:center; font-size:2rem; opacity:0; pointer-events:none;
-      transition:opacity 0.8s;
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0f0c29, #302b63, #24243e);
     }
-    .splash.show { opacity:1; pointer-events:auto; }
-    .logo { font-size:2.7rem; font-weight:bold; letter-spacing:2px; color:#0080ff; margin-bottom:10px; }
-    .desc { font-size:1.1rem; color:#555; margin-bottom:20px; max-width:320px; text-align:center; }
-    .header { font-size:2rem; font-weight:bold; margin-bottom:10px; color:#0080ff; }
-    .logout { margin-top:32px; background:#f33; color:#fff; }
-    .back { margin-top:24px; background:#222; color:#fff; }
-    .workspace { min-width:300px; padding:24px 14px; background:#fff; border-radius:16px; box-shadow:0 2px 16px #eee; }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
   </style>
 </head>
-<body>
-  <div id="root"></div>
-  <!-- React & ReactDOM CDN (VERSI 17) -->
-  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<body class="text-white">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center p-6 absolute top-0 left-0 w-full z-10">
+    <!-- Logo -->
+    <div class="text-2xl font-bold tracking-wider">DSRT</div>
+    <!-- Login Button -->
+    <button class="px-6 py-2 bg-gradient-to-r from-purple-600 via-teal-400 to-orange-500 rounded-xl shadow-lg hover:opacity-90 transition">
+      Login
+    </button>
+  </header>
+
+  <!-- Konten Tengah -->
+  <main class="flex items-center justify-center h-screen text-center relative z-10">
+    <h1 class="text-5xl font-extrabold drop-shadow-lg bg-gradient-to-r from-teal-400 via-purple-500 to-orange-400 bg-clip-text text-transparent">
+      Welcome to DSRT
+    </h1>
+  </main>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
   <script>
-    const { useState, useEffect } = React;
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-    function SplashScreen({ show, onEnd }) {
-      useEffect(() => {
-        if (show) {
-          const timer = setTimeout(() => onEnd(), 1400);
-          return () => clearTimeout(timer);
-        }
-      }, [show, onEnd]);
-      return (
-        React.createElement("div", { className: "splash" + (show ? " show" : "") },
-          React.createElement("span", null, "Memuat CreativeSpace...")
-        )
-      );
+    // Geometry (wave plane)
+    let geometry = new THREE.PlaneGeometry(50, 50, 100, 100);
+    let material = new THREE.MeshBasicMaterial({ 
+      color: 0x00ffff, 
+      wireframe: true 
+    });
+    let plane = new THREE.Mesh(geometry, material);
+    scene.add(plane);
+
+    plane.rotation.x = -Math.PI / 2.5;
+    camera.position.z = 20;
+    camera.position.y = 10;
+
+    // Animate waves + gradient color shift
+    function animate() {
+      requestAnimationFrame(animate);
+      let time = Date.now() * 0.001;
+
+      geometry.vertices?.forEach((vertex, i) => {
+        vertex.z = Math.sin(i / 5 + time) * 0.5;
+      });
+      geometry.verticesNeedUpdate = true;
+
+      // Dynamic rainbow color shift
+      let r = Math.sin(time * 0.6) * 127 + 128;
+      let g = Math.sin(time * 0.4 + 2) * 127 + 128;
+      let b = Math.sin(time * 0.8 + 4) * 127 + 128;
+      material.color.setRGB(r / 255, g / 255, b / 255);
+
+      renderer.render(scene, camera);
     }
+    animate();
 
-    function App() {
-      const [stage, setStage] = useState("landing");
-      const [workspace, setWorkspace] = useState("");
-      const [user, setUser] = useState(null);
-      const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-      const [showSplash, setShowSplash] = useState(false);
-
-      const handleLogin = (e) => {
-        e.preventDefault();
-        setUser(loginForm.username);
-        setShowSplash(true);
-        setStage("splash");
-      };
-
-      useEffect(() => {
-        if (showSplash) {
-          const timer = setTimeout(() => {
-            setShowSplash(false);
-            setStage("home");
-          }, 1400);
-          return () => clearTimeout(timer);
-        }
-      }, [showSplash]);
-
-      if (stage === "landing") {
-        return React.createElement("div", { className: "center" },
-          React.createElement("div", { className: "logo" }, "CreativeSpace"),
-          React.createElement("div", { className: "desc" },
-            "Edit video, foto, logo, dan lainnya secara modern.",
-            React.createElement("br", null),
-            "Mirip Picsart, Figma, dan tools kreatif lainnya."
-          ),
-          React.createElement("button", { className: "btn", onClick: () => setStage("login") }, "Login")
-        );
-      }
-      if (stage === "login") {
-        return React.createElement("div", { className: "center" },
-          React.createElement("form", { onSubmit: handleLogin },
-            React.createElement("div", { className: "header" }, "Login"),
-            React.createElement("input", {
-              className: "input",
-              type: "text",
-              placeholder: "Username",
-              required: true,
-              value: loginForm.username,
-              onChange: e => setLoginForm(f => ({ ...f, username: e.target.value }))
-            }),
-            React.createElement("input", {
-              className: "input",
-              type: "password",
-              placeholder: "Password",
-              required: true,
-              value: loginForm.password,
-              onChange: e => setLoginForm(f => ({ ...f, password: e.target.value }))
-            }),
-            React.createElement("button", { className: "btn", type: "submit" }, "Masuk")
-          )
-        );
-      }
-      if (stage === "splash") {
-        return React.createElement(SplashScreen, { show: showSplash, onEnd: () => {} });
-      }
-      if (stage === "home") {
-        return React.createElement("div", { className: "center" },
-          React.createElement("div", { className: "header" }, `Selamat Datang, ${user}!`),
-          React.createElement("div", null, "Pilih fitur editing:"),
-          React.createElement("div", { className: "menu-list" },
-            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("video"); setStage("workspace"); } }, "Edit Video"),
-            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("photo"); setStage("workspace"); } }, "Edit Foto"),
-            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("logo"); setStage("workspace"); } }, "Edit Logo"),
-            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("design"); setStage("workspace"); } }, "Edit Desain"),
-            React.createElement("button", { className: "btn", onClick: () => { setWorkspace("banner"); setStage("workspace"); } }, "Edit Banner")
-          ),
-          React.createElement("button", { className: "btn logout", onClick: () => { setUser(null); setStage("landing"); } }, "Logout")
-        );
-      }
-      if (stage === "workspace") {
-        return React.createElement("div", { className: "center workspace" },
-          React.createElement("div", { className: "header" }, `Workspace: Edit ${workspace.charAt(0).toUpperCase() + workspace.slice(1)}`),
-          React.createElement("div", { className: "workspace-tools" },
-            workspace === "video" && [
-              React.createElement("button", { className: "btn", key: "potong" }, "Potong Video"),
-              React.createElement("button", { className: "btn", key: "musik" }, "Tambah Musik"),
-              React.createElement("button", { className: "btn", key: "efek" }, "Filter Efek"),
-              React.createElement("button", { className: "btn", key: "export" }, "Ekspor MP4")
-            ],
-            workspace === "photo" && [
-              React.createElement("button", { className: "btn", key: "crop" }, "Crop Foto"),
-              React.createElement("button", { className: "btn", key: "filter" }, "Filter"),
-              React.createElement("button", { className: "btn", key: "teks" }, "Tambahkan Teks"),
-              React.createElement("button", { className: "btn", key: "jpg" }, "Ekspor JPG")
-            ],
-            workspace === "logo" && [
-              React.createElement("button", { className: "btn", key: "baru" }, "Buat Logo Baru"),
-              React.createElement("button", { className: "btn", key: "warna" }, "Edit Warna"),
-              React.createElement("button", { className: "btn", key: "icon" }, "Tambahkan Icon"),
-              React.createElement("button", { className: "btn", key: "png" }, "Ekspor PNG")
-            ],
-            workspace === "design" && [
-              React.createElement("button", { className: "btn", key: "canvas" }, "Canvas Design"),
-              React.createElement("button", { className: "btn", key: "layer" }, "Layer"),
-              React.createElement("button", { className: "btn", key: "vector" }, "Vector"),
-              React.createElement("button", { className: "btn", key: "svg" }, "Export SVG")
-            ],
-            workspace === "banner" && [
-              React.createElement("button", { className: "btn", key: "ukuran" }, "Ukuran Banner"),
-              React.createElement("button", { className: "btn", key: "bg" }, "Background"),
-              React.createElement("button", { className: "btn", key: "teks" }, "Teks Banner"),
-              React.createElement("button", { className: "btn", key: "export" }, "Export PNG")
-            ]
-          ),
-          React.createElement("button", { className: "btn back", onClick: () => setStage("home") }, "Kembali ke Home")
-        );
-      }
-      return null;
-    }
-
-    ReactDOM.render(
-      React.createElement(App),
-      document.getElementById("root")
-    );
+    // Resize handling
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
+
 </body>
 </html>
