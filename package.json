@@ -1,3 +1,10 @@
-"scripts": {
-  "dev": "next dev --turbo"
+{
+  "name": "dsrt",
+  "version": "0.0.1",
+  "description": "DSRT Engine Core Library",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  }
 }
